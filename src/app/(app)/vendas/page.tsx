@@ -90,38 +90,52 @@ export default function VendasPage() {
   }, []);
 
   const fetchInitialData = async () => {
-    // Fetch products in stock
-    const { data: prodData } = await supabase
-      .from('products')
-      .select('*')
-      .eq('active', true)
-      .gt('current_stock', 0)
-      .order('name');
-    if (prodData) setProducts(prodData);
+    const [productsRes, appointmentsRes, servicesRes, ticketsRes] = await Promise.all([
+      supabase
+        .from('products')
+        .select('*')
+        .eq('active', true)
+        .gt('current_stock', 0)
+        .order('name'),
+      supabase
+        .from('appointments')
+        .select(`
+          id, client_id, barber_id, service_id, status, ticket_id,
+          services (name, price),
+          clients (name),
+          barbers (name)
+        `)
+        .in('status', ['scheduled', 'confirmed', 'in_progress'])
+        .order('appointment_date'),
+      supabase
+        .from('services')
+        .select('*')
+        .eq('active', true)
+        .order('name'),
+      supabase
+        .from('tickets')
+        .select('appointment_id')
+        .not('appointment_id', 'is', null)
+    ]);
 
-    // Fetch only appointments that are still open for checkout.
-    // Some older rows may keep an "open" status even after a ticket was created,
-    // so we also require ticket_id to be null.
-    const { data: aptData } = await supabase
-      .from('appointments')
-      .select(`
-        id, client_id, barber_id, service_id,
-        services (name, price),
-        clients (name),
-        barbers (name)
-      `)
-      .in('status', ['scheduled', 'confirmed', 'in_progress'])
-      .is('ticket_id', null)
-      .order('appointment_date');
-    if (aptData) setAppointments(aptData as any[]);
+    if (productsRes.data) setProducts(productsRes.data);
+    if (servicesRes.data) setAllServices(servicesRes.data);
 
-    // Fetch all active services for the "add service" selector
-    const { data: svcData } = await supabase
-      .from('services')
-      .select('*')
-      .eq('active', true)
-      .order('name');
-    if (svcData) setAllServices(svcData);
+    if (appointmentsRes.data) {
+      const ticketedAppointmentIds = new Set(
+        (ticketsRes.data || [])
+          .map((ticket) => ticket.appointment_id)
+          .filter(Boolean)
+      );
+
+      const openAppointments = (appointmentsRes.data as any[]).filter((appointment) => {
+        if (appointment.ticket_id) return false;
+        if (ticketedAppointmentIds.has(appointment.id)) return false;
+        return ['scheduled', 'confirmed', 'in_progress'].includes(appointment.status);
+      });
+
+      setAppointments(openAppointments);
+    }
   };
 
   const fetchRecentTickets = async () => {
