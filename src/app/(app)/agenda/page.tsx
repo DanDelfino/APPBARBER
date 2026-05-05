@@ -331,13 +331,19 @@ export default function AgendaPage() {
 
                 <div className={styles.appointmentActions}>
                   {apt.status !== 'completed' && apt.status !== 'cancelled' ? (
-                    <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+                      <div className={styles.actionHint}>
+                        {apt.status === 'in_progress'
+                          ? 'Passo 2: clique abaixo para receber e concluir esse atendimento.'
+                          : 'Passo 1: clique abaixo para começar esse atendimento.'}
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                       <Button 
                         variant="primary" 
                         style={{ flex: 1 }}
                         onClick={() => handleStartAppointment(apt)}
                       >
-                        {apt.status === 'in_progress' ? 'Finalizar Atendimento' : 'Iniciar Atendimento'}
+                        {apt.status === 'in_progress' ? 'Ir para Recebimento' : 'Iniciar Atendimento'}
                       </Button>
                       <button 
                         className={styles.cancelActionBtn} 
@@ -346,6 +352,7 @@ export default function AgendaPage() {
                       >
                         <XCircle size={20} />
                       </button>
+                      </div>
                     </div>
                   ) : (
                     <div style={{ width: '100%', textAlign: 'center' }}>

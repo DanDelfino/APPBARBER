@@ -232,6 +232,16 @@
   margin-top: 0.5rem;
 }
 
+.actionHint {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  color: var(--foreground);
+  border-radius: 10px;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
 .loadingCard, .emptyCard {
   padding: 4rem;
   display: flex;

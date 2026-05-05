@@ -4,6 +4,16 @@
   gap: 1.5rem;
 }
 
+.flowBanner {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(16, 185, 129, 0.08));
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  color: var(--foreground);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .header {
   display: flex;
   flex-direction: column;
@@ -93,6 +103,17 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--foreground);
+}
+
+.nextStepBox {
+  margin-top: 0.5rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  line-height: 1.45;
 }
 
 .productCard {

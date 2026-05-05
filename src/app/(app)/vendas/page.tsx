@@ -462,6 +462,10 @@ export default function VendasPage() {
 
   return (
     <div className={styles.container}>
+      <div className={styles.flowBanner}>
+        <strong>Fluxo simples:</strong> escolha o atendimento, confira os itens e clique em <strong>Receber e Finalizar Ticket</strong>.
+      </div>
+
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>PDV / Fechamento</h1>
@@ -501,6 +505,9 @@ export default function VendasPage() {
               <div className={styles.selectedAptCard}>
                 <div className={styles.row}><User size={16}/> <strong>Cliente:</strong> {currentApt.clients.name}</div>
                 <div className={styles.row}><Scissors size={16}/> <strong>Profissional:</strong> {currentApt.barbers.name}</div>
+                <div className={styles.nextStepBox}>
+                  Passo seguinte: confira os serviços e produtos e depois clique em <strong>Receber e Finalizar Ticket</strong>.
+                </div>
               </div>
             )}
           </Card>
@@ -674,7 +681,7 @@ export default function VendasPage() {
               isLoading={loading}
             >
               <ShoppingCart size={18} />
-              Finalizar Ticket
+              Receber e Finalizar Ticket
             </Button>
           </Card>
         </div>
