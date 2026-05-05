@@ -350,10 +350,14 @@ export default function VendasPage() {
 
       // 5. Update Appointment Status
       if (!isAvulso && currentApt) {
-        await supabase
+        const { error: appointmentUpdateError } = await supabase
           .from('appointments')
           .update({ status: 'completed', ticket_id: ticket.id })
           .eq('id', currentApt.id);
+
+        if (appointmentUpdateError) {
+          throw appointmentUpdateError;
+        }
       }
 
       // Success

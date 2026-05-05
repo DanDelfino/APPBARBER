@@ -27,11 +27,31 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const pathname = request.nextUrl.pathname.replace(/^\/barber/, '') || '/'
+  const isAuthRoute = pathname.startsWith('/login')
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login')
+  let user = null
+  let authError = null
+
+  try {
+    const {
+      data: { user: sessionUser },
+      error,
+    } = await supabase.auth.getUser()
+
+    user = sessionUser
+    authError = error
+  } catch (error) {
+    authError = error
+  }
+
+  if (authError && isAuthRoute) {
+    request.cookies.getAll().forEach(({ name }) => {
+      if (name.startsWith('sb-')) {
+        supabaseResponse.cookies.delete(name)
+      }
+    })
+  }
 
   if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone()
