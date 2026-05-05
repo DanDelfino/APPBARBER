@@ -1,0 +1,21 @@
+=== All Labels Audit ===
+--- barber-app ---
+--- motoranews_appfit.1.2l9g3axnynfd4vpt602g16fel ---
+--- easypanel.1.bpr1i12qz2w9n2xqepamlnuoo ---
+--- dfautomatic_evolution-api-db.1.lh75ti3yq6w2yf5p367icwcq3 ---
+--- dfautomatic_evolution-api.1.9dbjo67o6zktejm852kydy2xi ---
+--- dfautomatic_evolution-api-redis.1.hlw8wq290cebi3pf94brk8fwo ---
+--- dfautomatic_n8n.1.qjdvulpj6kimltxk5swogpd2w ---
+--- traefik.1.fk7zpr13zz9s0mvev5y9xiuqf ---
+--- motoranews_motoranews.1.i1jidnkxlqhrmvdhoksfokn3q ---
+
+ERR: template parsing error: template: :1: unexpected "," in range
+template parsing error: template: :1: unexpected "," in range
+template parsing error: template: :1: unexpected "," in range
+template parsing error: template: :1: unexpected "," in range
+template parsing error: template: :1: unexpected "," in range
+template parsing error: template: :1: unexpected "," in range
+template parsing error: template: :1: unexpected "," in range
+template parsing error: template: :1: unexpected "," in range
+template parsing error: template: :1: unexpected "," in range
+

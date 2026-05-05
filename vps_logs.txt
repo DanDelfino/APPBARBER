@@ -1,0 +1,6 @@
+
+--- cd /root/barber-app && docker-compose -f docker-compose.prod.yml logs barber-app ---
+bash: line 1: cd: /root/barber-app: No such file or directory
+
+--- cd /root/barber-app && docker-compose -f docker-compose.prod.yml ps ---
+bash: line 1: cd: /root/barber-app: No such file or directory

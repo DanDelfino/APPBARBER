@@ -1,0 +1,34 @@
+=== Nginx Processes ===
+
+=== Nginx Config Search ===
+/etc/nginx/sites-available/dfautomatic.cloud:    location /barber {
+/etc/nginx/sites-available/dfautomatic.cloud:    location /barber/_next/static {
+/etc/nginx/sites-available/dfautomatic.cloud:        proxy_pass http://localhost:3005/barber/_next/static;
+
+
+=== Traefik Processes ===
+root     2838280  0.0  0.0   1056   128 ?        Ss   Mar11   0:24 /sbin/docker-init -- /entrypoint.sh traefik
+root     2838594  0.0  1.4 1438996 57212 ?       Sl   Mar11   5:09 traefik traefik
+
+
+=== Enabled Sites ===
+academia
+academia.dfautomatic.cloud
+dfautomatic.cloud
+
+
+=== Edge Curl Test ===
+HTTP/1.1 308 Permanent Redirect
+Location: https://dfautomatic.cloud/barber
+Date: Thu, 19 Mar 2026 09:18:39 GMT
+Content-Length: 18
+
+
+ERR:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0    18    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+
+=== Docker Compose Final Config ===
+ERR: no configuration file provided: not found
+

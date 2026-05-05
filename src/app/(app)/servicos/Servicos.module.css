@@ -1,0 +1,170 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 0.25rem 0;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border);
+}
+
+.table td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badgeActive {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badgeInactive {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionBtn:hover {
+  background-color: var(--background);
+  color: var(--primary);
+}
+
+.deleteBtn:hover {
+  color: var(--danger);
+  background-color: #fee2e2;
+}
+
+.loading, .emptyState {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* === Inline Price Editing === */
+.priceCell {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.priceCell:hover {
+  background-color: var(--background);
+}
+
+.priceSaved {
+  color: var(--success);
+}
+
+.savedIcon {
+  color: var(--success);
+  margin-left: 0.25rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.inlinePriceEdit {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.inlineCurrency {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.inlinePriceInput {
+  width: 90px;
+  padding: 0.3rem 0.5rem;
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--foreground);
+  text-align: right;
+  outline: none;
+}
+
+.inlineSpinner {
+  animation: spin 1s linear infinite;
+  color: var(--primary);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}

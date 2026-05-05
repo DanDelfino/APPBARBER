@@ -1,0 +1,252 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 0.25rem 0;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.barberSelect {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  font-size: 0.875rem;
+  color: var(--foreground);
+  outline: none;
+  cursor: pointer;
+}
+
+.dateNavigation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.dateControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--surface);
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.currentDate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 250px;
+  justify-content: center;
+}
+
+.dateIcon {
+  color: var(--primary);
+}
+
+.currentDate h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+  text-transform: capitalize;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.iconBtn:hover {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.todayBtn {
+  background: var(--background);
+  border: 1px solid var(--border);
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.todayBtn:hover {
+  background: var(--border);
+}
+
+.cancelActionBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--danger);
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.cancelActionBtn:hover {
+  background-color: var(--danger-light, #fee2e2);
+  border-color: var(--danger);
+}
+
+.agendaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.appointmentCard {
+  position: relative;
+  overflow: hidden;
+  padding: 0; /* Override generic card padding */
+}
+
+.statusIndicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+}
+
+.appointmentContent {
+  padding: 1.5rem;
+  margin-left: 6px; /* Offset for the status indicator */
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.appointmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.timeBlock {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--foreground);
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.statusBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.clientInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.clientIcon {
+  color: var(--text-muted);
+  background-color: var(--background);
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+}
+
+.clientName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.clientPhone {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.serviceDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.detailLabel {
+  color: var(--text-muted);
+}
+
+.detailValue {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.appointmentActions {
+  margin-top: 0.5rem;
+}
+
+.loadingCard, .emptyCard {
+  padding: 4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-muted);
+}
+
+.emptyIcon {
+  color: var(--border);
+}

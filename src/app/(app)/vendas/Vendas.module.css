@@ -1,0 +1,526 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.posLayout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.mainPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.appointmentSection h3, .cartSection h3, .checkoutSection h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  color: var(--foreground);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: var(--foreground);
+}
+
+.sectionHeader h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--background);
+  font-size: 0.875rem;
+  color: var(--foreground);
+  outline: none;
+  font-family: inherit;
+}
+
+.select:focus {
+  border-color: var(--primary);
+}
+
+.selectedAptCard {
+  margin-top: 1rem;
+  background-color: var(--background);
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--foreground);
+}
+
+.productCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.productCard:hover {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.productCard:hover .prodStock {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.prodName {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.prodStock {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.125rem;
+}
+
+.prodPrice {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.cartList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emptyCart {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  background-color: var(--background);
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+}
+
+.cartItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.itemName {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.itemPrice {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.itemControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.itemControls button {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground);
+}
+
+.itemControls button:hover {
+  background: var(--border);
+}
+
+.removeBtn {
+  color: var(--danger) !important;
+  margin-left: 0.5rem;
+}
+
+.itemSubtotal {
+  font-weight: 600;
+  font-size: 0.875rem;
+  width: 80px;
+  text-align: right;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0;
+  margin-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--foreground);
+}
+
+.paymentSection {
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.paymentSection label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.cashInput {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.changeDisplay {
+  background-color: var(--background);
+  padding: 0.75rem;
+  border-radius: 8px;
+  text-align: right;
+  color: var(--success);
+  font-size: 0.875rem;
+}
+
+.checkoutBtn {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background-color: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-top: 2rem;
+}
+
+.successIcon {
+  color: var(--success);
+  margin-bottom: 1rem;
+}
+
+.successState h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.successState p {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .posLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* === Service Cart Styles === */
+.sectionHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sectionHeaderRow h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--foreground);
+}
+
+.addServiceBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px dashed var(--primary);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.addServiceBtn:hover {
+  background: var(--primary);
+  color: white;
+  border-style: solid;
+}
+
+.serviceSelectorDropdown {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--background);
+}
+
+.serviceSelectorItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.serviceSelectorItem:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.serviceSelectorPrice {
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.serviceCartItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.servicePriceEdit {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.servicePriceCurrency {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.servicePriceInput {
+  width: 80px;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--foreground);
+  text-align: right;
+  outline: none;
+  font-family: inherit;
+}
+
+.servicePriceInput:focus {
+  border-color: var(--primary);
+}
+
+/* New Styles */
+.priceOverrideRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.overrideInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.overrideInputGroup label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.overrideInput {
+  width: 100px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: var(--surface);
+  color: var(--foreground);
+  font-weight: 600;
+  text-align: right;
+}
+
+.historySection {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.historyHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--foreground);
+}
+
+.historyHeader h2 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.historyCard {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.emptyHistory {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.historyTableContainer {
+  overflow-x: auto;
+}
+
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.historyTable th {
+  text-align: left;
+  padding: 1rem;
+  background-color: var(--background);
+  color: var(--text-muted);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+}
+
+.historyTable td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.historyTable tr:last-child td {
+  border-bottom: none;
+}
+
+.paymentBadge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.deleteHistoryBtn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.deleteHistoryBtn:hover {
+  background-color: rgba(var(--danger-rgb), 0.1);
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}

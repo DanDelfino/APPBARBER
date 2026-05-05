@@ -1,0 +1,139 @@
+=== Check uploaded files ===
+total 1020
+drwxr-xr-x 6 root root   4096 Mar 19 09:05 .
+drwx------ 8 root root   4096 Mar 18 15:49 ..
+-rw-rw-rw- 1 root root    261 Mar 18 12:13 .dockerignore
+-rw-r--r-- 1 root root    305 Mar 19 09:05 .env
+-rw-rw-rw- 1 root root    305 Mar 18 14:15 .env.local
+-rw-rw-rw- 1 root root    305 Mar 18 12:27 .env.production
+-rw-rw-rw- 1 root root    480 Mar 17 23:50 .gitignore
+-rw-rw-rw- 1 root root   1225 Mar 18 12:13 Dockerfile
+-rw-rw-rw- 1 root root   1450 Mar 17 23:50 README.md
+-rw-rw-rw- 1 root root   1138 Mar 19 05:58 deploy_barber.zip
+-rw-rw-rw- 1 root root    767 Mar 18 13:13 docker-compose.prod.yml
+-rw-rw-rw- 1 root root    465 Mar 17 23:50 eslint.config.mjs
+-rw-rw-rw- 1 root root    597 Mar 18 00:07 middleware.ts
+-rw-rw-rw- 1 root root    247 Mar 19 05:58 next-env.d.ts
+-rw-rw-rw- 1 root root    152 Mar 18 12:13 next.config.ts
+-rw-rw-rw- 1 root root    703 Mar 18 12:14 nginx-barber.conf
+-rw-rw-rw- 1 root root      0 Mar 18 13:07 nginx-df-fitness-remote.conf
+-rw-rw-rw- 1 root root    677 Mar 18 13:08 nginx-dfautomatic.conf
+-rw-rw-rw- 1 root root    224 Mar 18 13:08 nginx-site.conf
+-rw-rw-rw- 1 root root 214349 Mar 18 00:28 package-lock.json
+-rw-rw-rw- 1 root root    602 Mar 18 00:00 package.json
+drwxr-xr-x 2 root root   4096 Mar 19 09:05 public
+drwxr-xr-x 2 root root   4096 Mar 19 09:05 scripts
+drwxr-xr-x 5 root root   4096 Mar 18 15:49 src
+drwxr-xr-x 2 root root   4096 Mar 19 09:05 supabase
+-rw-rw-rw- 1 root root    670 Mar 17 23:58 tsconfig.json
+-rw-rw-rw- 1 root root 716983 Mar 18 12:54 vps_build_error.txt
+-rw-rw-rw- 1 root root    297 Mar 18 12:36 vps_logs.txt
+-rw-rw-rw- 1 root root    252 Mar 18 12:52 vps_state.txt
+
+
+=== All Docker Containers ===
+CONTAINER ID   IMAGE                                    COMMAND                  CREATED        STATUS                      PORTS                                                                          NAMES
+314e5fbdf9f1   3f8a716258bd                             "docker-entrypoint.s…"   17 hours ago   Exited (0) 2 minutes ago                                                                                   314e5fbdf9f1_barber-app
+cbce561c0beb   easypanel/motoranews/appfit:latest       "docker-entrypoint.s…"   17 hours ago   Up 17 hours                 3000/tcp                                                                       motoranews_appfit.1.2l9g3axnynfd4vpt602g16fel
+60f3e4c80932   easypanel/motoranews/appfit:latest       "docker-entrypoint.s…"   7 days ago     Exited (137) 17 hours ago                                                                                  motoranews_appfit.1.kt17gw5jh7c94kn8xy9ajqbnp
+cb2d903db9a7   easypanel/motoranews/appfit:latest       "docker-entrypoint.s…"   7 days ago     Exited (137) 7 days ago                                                                                    motoranews_appfit.1.tzy3cfqrr8kgh0e654up3khcc
+e004dd6d2e7e   978e9c8017b5                             "docker-entrypoint.s…"   7 days ago     Exited (137) 7 days ago                                                                                    motoranews_appfit.1.ug1r73ndnq5jhsylrhvpk173d
+44b416d468ea   a4e1e805daf3                             "docker-entrypoint.s…"   7 days ago     Exited (137) 7 days ago                                                                                    motoranews_appfit.1.zqekm77rg0oxotwfdxr64vab4
+9c6fb864796a   easypanel/easypanel:latest               "node backend.js sta…"   7 days ago     Up 7 days                   0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp                                    easypanel.1.bpr1i12qz2w9n2xqepamlnuoo
+ae8e6d6ffb03   postgres:17                              "docker-entrypoint.s…"   7 days ago     Up 7 days                   5432/tcp                                                                       dfautomatic_evolution-api-db.1.lh75ti3yq6w2yf5p367icwcq3
+d4e5c31d1334   evoapicloud/evolution-api:v2.3.7         "/bin/bash -c '. ./D…"   7 days ago     Up 7 days                   8080/tcp                                                                       dfautomatic_evolution-api.1.9dbjo67o6zktejm852kydy2xi
+f1bd231b19ba   redis:7                                  "/bin/sh -c 'redis-s…"   7 days ago     Up 7 days                   6379/tcp                                                                       dfautomatic_evolution-api-redis.1.hlw8wq290cebi3pf94brk8fwo
+8cbdd319417c   n8nio/n8n:2.2.4                          "tini -- /docker-ent…"   7 days ago     Up 7 days                   5678/tcp                                                                       dfautomatic_n8n.1.qjdvulpj6kimltxk5swogpd2w
+2d20a215ae21   traefik:3.3.7                            "/entrypoint.sh trae…"   7 days ago     Up 7 days                   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp   traefik.1.fk7zpr13zz9s0mvev5y9xiuqf
+cea6a09943db   easypanel/motoranews/motoranews:latest   "docker-entrypoint.s…"   7 days ago     Up 7 days                   3000/tcp                                                                       motoranews_motoranews.1.i1jidnkxlqhrmvdhoksfokn3q
+
+
+=== .env on VPS ===
+NEXT_PUBLIC_SUPABASE_URL=https://ykvmechtbkhnsowkhdoc.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlrdm1lY2h0YmtobnNvd2toZG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDczOTYsImV4cCI6MjA4OTQyMzM5Nn0.m9yPCAxszj7t72bmKC6f_QgM2Q3HsoliN9uSRCszVW0
+
+
+=== Build attempt ===
+#1 [internal] load local bake definitions
+#1 reading from stdin 864B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.26kB done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/node:20-alpine
+#3 DONE 0.4s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 303B done
+#4 DONE 0.0s
+
+#5 [deps 1/5] FROM docker.io/library/node:20-alpine@sha256:b88333c42c23fbd91596ebd7fd10de239cedab9617de04142dde7315e3bc0afa
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 4.61kB 0.0s done
+#6 DONE 0.0s
+
+#7 [builder 4/5] COPY . .
+#7 CACHED
+
+#8 [builder 3/5] COPY --from=deps /app/node_modules ./node_modules
+#8 CACHED
+
+#9 [deps 4/5] COPY package.json package-lock.json ./
+#9 CACHED
+
+#10 [deps 3/5] WORKDIR /app
+#10 CACHED
+
+#11 [deps 5/5] RUN npm ci
+#11 CACHED
+
+#12 [builder 5/5] RUN npm run build
+#12 CACHED
+
+#13 [runner 4/7] RUN adduser --system --uid 1001 nextjs
+#13 CACHED
+
+#14 [runner 5/7] COPY --from=builder /app/public ./public
+#14 CACHED
+
+#15 [deps 2/5] RUN apk add --no-cache libc6-compat
+#15 CACHED
+
+#16 [builder 2/5] WORKDIR /app
+#16 CACHED
+
+#17 [runner 6/7] COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+#17 CACHED
+
+#18 [runner 3/7] RUN addgroup --system --gid 1001 nodejs
+#18 CACHED
+
+#19 [runner 7/7] COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+#19 CACHED
+
+#20 exporting to image
+#20 exporting layers done
+#20 writing image sha256:07344446bd04839dc99e3d33a92fb85c68f6a63fe6c9ce6c14e65c691f245ea2 done
+#20 naming to docker.io/library/barber-app-barber-app done
+#20 DONE 0.0s
+
+#21 resolving provenance for metadata file
+#21 DONE 0.0s
+ barber-app-barber-app  Built
+
+
+
+=== Start attempt ===
+ Container 314e5fbdf9f1_barber-app  Recreate
+ Container 314e5fbdf9f1_barber-app  Error response from daemon: Conflict. The container name "/314e5fbdf9f1_barber-app" is already in use by container "314e5fbdf9f1d23d823e5f89cb05f3b96bec63f5fff844778995f635fb24d9c7". You have to remove (or rename) that container to be able to reuse that name.
+Error response from daemon: Conflict. The container name "/314e5fbdf9f1_barber-app" is already in use by container "314e5fbdf9f1d23d823e5f89cb05f3b96bec63f5fff844778995f635fb24d9c7". You have to remove (or rename) that container to be able to reuse that name.
+
+
+
+=== Containers after start ===
+CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS                     PORTS     NAMES
+314e5fbdf9f1   3f8a716258bd   "docker-entrypoint.s…"   17 hours ago   Exited (0) 2 minutes ago             314e5fbdf9f1_barber-app

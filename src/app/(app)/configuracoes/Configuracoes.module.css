@@ -1,0 +1,316 @@
+/* ==============================
+   Configurações — Page Styles
+   ============================== */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0 0 0.25rem 0;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Section inside card */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.sectionSub {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: -0.75rem 0 0 0;
+}
+
+/* Form row */
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Toggle row */
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.toggleRow:last-child {
+  border-bottom: none;
+}
+
+.toggleLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.toggleDesc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.125rem;
+}
+
+/* Simple toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  background-color: #d1d5db;
+  border-radius: 9999px;
+  transition: 0.25s;
+  cursor: pointer;
+}
+
+.slider::before {
+  content: '';
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.25s;
+}
+
+.switch input:checked + .slider {
+  background-color: var(--primary);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(20px);
+}
+
+/* Barber section */
+.barberHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.barberHeader .sectionSub {
+  margin: 0;
+}
+
+.barberList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.barberItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: background-color 0.15s;
+}
+
+.barberItem:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.barberInactive {
+  opacity: 0.5;
+}
+
+.barberInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.barberAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.barberName {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  display: block;
+}
+
+.barberPhone {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.barberActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statusBadge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.statusBadge:hover {
+  opacity: 0.8;
+}
+
+.statusActive {
+  background-color: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
+.statusInactive {
+  background-color: rgba(107, 114, 128, 0.12);
+  color: #6b7280;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.actionBtn:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+  color: var(--foreground);
+}
+
+.emptyBarbers {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Color palette */
+.colorLabel {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.colorPalette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.colorSwatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.colorSwatch:hover {
+  transform: scale(1.12);
+}
+
+.colorSwatchActive {
+  border-color: var(--foreground);
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--foreground);
+}
+
+.colorSelected {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0 0;
+}
+
+/* Actions footer */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.loading {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}

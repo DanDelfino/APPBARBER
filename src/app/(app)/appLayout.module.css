@@ -1,0 +1,18 @@
+.appContainer {
+  display: flex;
+  min-height: 100vh;
+}
+
+.mainWrapper {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 2rem;
+  background-color: var(--background);
+  min-height: calc(100vh - var(--topbar-height));
+}
