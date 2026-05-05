@@ -62,6 +62,14 @@ interface OpenAppointment {
   barbers: { name: string };
 }
 
+const createLineItemId = () => {
+  if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `line-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+};
+
 export default function VendasPage() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
@@ -196,7 +204,7 @@ export default function VendasPage() {
     const apt = appointments.find(a => a.id === value);
     if (apt) {
       setServiceCart([{
-        uid: crypto.randomUUID(),
+        uid: createLineItemId(),
         service_id: apt.service_id,
         name: apt.services.name,
         price: apt.services.price,
@@ -208,7 +216,7 @@ export default function VendasPage() {
   /* === Service Cart operations === */
   const addServiceToCart = (svc: ServiceOption) => {
     setServiceCart(prev => [...prev, {
-      uid: crypto.randomUUID(),
+      uid: createLineItemId(),
       service_id: svc.id,
       name: svc.name,
       price: svc.price,
