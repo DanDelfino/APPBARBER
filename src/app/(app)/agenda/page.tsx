@@ -39,6 +39,7 @@ export default function AgendaPage() {
   const [appointments, setAppointments] = useState<AppointmentView[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [selectedBarberId, setSelectedBarberId] = useState<string>('all');
+  const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -57,6 +58,11 @@ export default function AgendaPage() {
   useEffect(() => {
     fetchAppointments();
   }, [currentDate, selectedBarberId]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const fetchBarbers = async () => {
     const { data } = await supabase.from('barbers').select('id, name').eq('active', true).order('name');
@@ -124,6 +130,38 @@ export default function AgendaPage() {
     setCancelModalOpen(true);
   };
 
+  const getStartedAtStorageKey = (appointmentId: string) => `barber:appointment-started:${appointmentId}`;
+
+  const getStartedAt = (appointment: AppointmentView) => {
+    if (typeof window === 'undefined') return null;
+
+    const storedValue = window.localStorage.getItem(getStartedAtStorageKey(appointment.id));
+    if (storedValue) return new Date(storedValue);
+
+    if (appointment.status === 'in_progress') {
+      return new Date(`${appointment.appointment_date}T${appointment.start_time}`);
+    }
+
+    return null;
+  };
+
+  const formatElapsedTime = (appointment: AppointmentView) => {
+    const startedAt = getStartedAt(appointment);
+    if (!startedAt) return null;
+
+    const elapsedMs = Math.max(0, now - startedAt.getTime());
+    const totalSeconds = Math.floor(elapsedMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   const handleStartAppointment = async (appointment: AppointmentView) => {
     try {
       if (appointment.status === 'scheduled' || appointment.status === 'confirmed') {
@@ -133,6 +171,21 @@ export default function AgendaPage() {
           .eq('id', appointment.id);
 
         if (error) throw error;
+
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(getStartedAtStorageKey(appointment.id), new Date().toISOString());
+        }
+
+        showToast('Atendimento iniciado.', 'success');
+        fetchAppointments();
+        return;
+      }
+
+      if (typeof window !== 'undefined') {
+        const storageKey = getStartedAtStorageKey(appointment.id);
+        if (!window.localStorage.getItem(storageKey)) {
+          window.localStorage.setItem(storageKey, new Date().toISOString());
+        }
       }
 
       router.push(`/vendas?appointment=${appointment.id}`);
@@ -307,6 +360,20 @@ export default function AgendaPage() {
                     </div>
                   )}
                 </div>
+                {apt.status === 'in_progress' && formatElapsedTime(apt) && (
+                  <div style={{
+                    marginTop: '0.75rem',
+                    padding: '0.6rem 0.75rem',
+                    borderRadius: '10px',
+                    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+                    color: 'var(--warning)',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    fontVariantNumeric: 'tabular-nums'
+                  }}>
+                    Tempo em atendimento: {formatElapsedTime(apt)}
+                  </div>
+                )}
               </div>
             </Card>
           ))}
