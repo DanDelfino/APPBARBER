@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -10,6 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { normalizeName, normalizePhone } from '@/lib/utils';
 import styles from './Vendas.module.css';
+import { format, startOfDay } from 'date-fns';
 
 interface Product {
   id: string;
@@ -51,12 +53,17 @@ interface OpenAppointment {
   client_id: string;
   barber_id: string;
   service_id: string;
+  appointment_date: string;
+  start_time: string;
+  status: string;
+  ticket_id: string | null;
   services: { name: string, price: number };
   clients: { name: string };
   barbers: { name: string };
 }
 
 export default function VendasPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [appointments, setAppointments] = useState<OpenAppointment[]>([]);
   const [allServices, setAllServices] = useState<ServiceOption[]>([]);
@@ -81,6 +88,7 @@ export default function VendasPage() {
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [clientForm, setClientForm] = useState({ name: '', phone: '' });
   const [clientSaving, setClientSaving] = useState(false);
+  const [appointmentFromQuery, setAppointmentFromQuery] = useState<string | null>(null);
   const supabase = createClient();
   const { showToast } = useToast();
 
@@ -89,7 +97,30 @@ export default function VendasPage() {
     fetchRecentTickets();
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const appointmentId = new URLSearchParams(window.location.search).get('appointment');
+    setAppointmentFromQuery(appointmentId);
+  }, []);
+
+  useEffect(() => {
+    if (!appointmentFromQuery || appointments.length === 0) return;
+
+    const appointmentExists = appointments.some((appointment) => appointment.id === appointmentFromQuery);
+    if (!appointmentExists) {
+      showToast('Esse atendimento não está mais em aberto no PDV.', 'info');
+      router.replace('/vendas');
+      return;
+    }
+
+    handleSelectAppointment(appointmentFromQuery);
+    router.replace('/vendas');
+  }, [appointmentFromQuery, appointments]);
+
   const fetchInitialData = async () => {
+    const todayStr = format(startOfDay(new Date()), 'yyyy-MM-dd');
+
     const [productsRes, appointmentsRes, servicesRes, ticketsRes] = await Promise.all([
       supabase
         .from('products')
@@ -100,13 +131,14 @@ export default function VendasPage() {
       supabase
         .from('appointments')
         .select(`
-          id, client_id, barber_id, service_id, status, ticket_id,
+          id, client_id, barber_id, service_id, appointment_date, start_time, status, ticket_id,
           services (name, price),
           clients (name),
           barbers (name)
         `)
+        .eq('appointment_date', todayStr)
         .in('status', ['scheduled', 'confirmed', 'in_progress'])
-        .order('appointment_date'),
+        .order('start_time'),
       supabase
         .from('services')
         .select('*')

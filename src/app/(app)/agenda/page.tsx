@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -45,6 +46,7 @@ export default function AgendaPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [isCancellingLoading, setIsCancellingLoading] = useState(false);
   
+  const router = useRouter();
   const supabase = createClient();
   const { showToast } = useToast();
 
@@ -120,6 +122,24 @@ export default function AgendaPage() {
     setCancellingAptId(aptId);
     setCancelReason('');
     setCancelModalOpen(true);
+  };
+
+  const handleStartAppointment = async (appointment: AppointmentView) => {
+    try {
+      if (appointment.status === 'scheduled' || appointment.status === 'confirmed') {
+        const { error } = await supabase
+          .from('appointments')
+          .update({ status: 'in_progress' })
+          .eq('id', appointment.id);
+
+        if (error) throw error;
+      }
+
+      router.push(`/vendas?appointment=${appointment.id}`);
+    } catch (err) {
+      console.error(err);
+      showToast('Erro ao abrir o atendimento no PDV.', 'error');
+    }
   };
 
   const handlePrevDay = () => setCurrentDate(subDays(currentDate, 1));
@@ -262,7 +282,7 @@ export default function AgendaPage() {
                       <Button 
                         variant="primary" 
                         style={{ flex: 1 }}
-                        onClick={() => showToast('Acesse a tela de Vendas para finalizar!', 'info')}
+                        onClick={() => handleStartAppointment(apt)}
                       >
                         {apt.status === 'in_progress' ? 'Finalizar Atendimento' : 'Iniciar Atendimento'}
                       </Button>
