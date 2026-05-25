@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
@@ -152,6 +152,15 @@ const createLineItemId = () => {
 
 const formatMoney = (value: number) => `R$ ${value.toFixed(2)}`;
 
+const getErrorMessage = (error: unknown) => {
+  if (!error) return 'Erro desconhecido.';
+  if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
+    return error.message;
+  }
+
+  return 'Erro desconhecido.';
+};
+
 export default function VendasPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -180,6 +189,7 @@ export default function VendasPage() {
   const [openTicketForm, setOpenTicketForm] = useState({ label: '', client_id: '' });
   const [openTicketSaving, setOpenTicketSaving] = useState(false);
   const [appointmentFromQuery, setAppointmentFromQuery] = useState<string | null>(null);
+  const editorSectionRef = useRef<HTMLDivElement | null>(null);
 
   const pickRelation = (value: { name: string }[] | { name: string } | null) => {
     if (!value) return null;
@@ -368,15 +378,138 @@ export default function VendasPage() {
     setSelectedAppointment('');
     setSelectedOpenTicketId(ticketId);
     resetEditorState();
+    setShowServiceSelector(false);
+
+    setTimeout(() => {
+      editorSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
 
     if (action === 'close') {
       showToast('Ticket aberto selecionado. Confira o total e clique em receber.', 'info');
     } else {
-      showToast('Ticket aberto selecionado. Agora voce pode adicionar itens.', 'success');
+      showToast('Ticket aberto selecionado. Agora clique nos produtos ou servicos para lancar direto na conta.', 'success');
+    }
+  };
+
+  const persistItemsToOpenTicket = async (
+    ticket: OpenTicket,
+    nextServices: ServiceCartItem[],
+    nextProducts: CartItem[]
+  ) => {
+    if (nextServices.length === 0 && nextProducts.length === 0) {
+      return {
+        totalServices: Number(ticket.total_services),
+        totalProducts: Number(ticket.total_products),
+        totalAmount: Number(ticket.total_amount),
+        totalProfit: Number(ticket.total_profit),
+      };
+    }
+
+    let addedServiceTotal = 0;
+    let addedProductsTotal = 0;
+    let addedProductsCost = 0;
+
+    for (const service of nextServices) {
+      const subtotal = service.price * service.quantity;
+      addedServiceTotal += subtotal;
+
+      const { error } = await supabase.from('ticket_service_items').insert({
+        ticket_id: ticket.id,
+        service_id: service.service_id,
+        service_name_snapshot: service.name,
+        quantity: service.quantity,
+        unit_price: service.price,
+        subtotal,
+      });
+
+      if (error) throw error;
+    }
+
+    for (const item of nextProducts) {
+      const subtotal = item.unit_price * item.quantity;
+      const unitProfit = item.unit_price - item.unit_cost;
+      addedProductsTotal += subtotal;
+      addedProductsCost += item.unit_cost * item.quantity;
+
+      const { error: productItemError } = await supabase.from('ticket_product_items').insert({
+        ticket_id: ticket.id,
+        product_id: item.product_id,
+        product_name_snapshot: item.name,
+        quantity: item.quantity,
+        unit_cost: item.unit_cost,
+        unit_price: item.unit_price,
+        unit_profit: unitProfit,
+        subtotal,
+      });
+
+      if (productItemError) throw productItemError;
+
+      const { error: stockError } = await supabase.from('stock_movements').insert({
+        product_id: item.product_id,
+        movement_type: 'out',
+        quantity: item.quantity,
+        unit_cost: item.unit_cost,
+        reason: 'Consumo em ticket aberto',
+        reference_type: 'open_ticket',
+        reference_id: ticket.id,
+      });
+
+      if (stockError) throw stockError;
+    }
+
+    const totalServices = Number(ticket.total_services) + addedServiceTotal;
+    const totalProducts = Number(ticket.total_products) + addedProductsTotal;
+    const totalAmount = Number(ticket.total_amount) + addedServiceTotal + addedProductsTotal;
+    const totalProfit = Number(ticket.total_profit) + addedServiceTotal + (addedProductsTotal - addedProductsCost);
+
+    const { error: updateError } = await supabase
+      .from('tickets')
+      .update({
+        total_services: totalServices,
+        total_products: totalProducts,
+        total_amount: totalAmount,
+        total_profit: totalProfit,
+      })
+      .eq('id', ticket.id);
+
+    if (updateError) throw updateError;
+
+    return {
+      totalServices,
+      totalProducts,
+      totalAmount,
+      totalProfit,
+    };
+  };
+
+  const quickAddServiceToOpenTicket = async (ticket: OpenTicket, service: ServiceOption) => {
+    setLoading(true);
+    setShowServiceSelector(false);
+
+    try {
+      await persistItemsToOpenTicket(ticket, [{
+        uid: createLineItemId(),
+        service_id: service.id,
+        name: service.name,
+        price: service.price,
+        quantity: 1,
+      }], []);
+      await fetchInitialData();
+      showToast(`${service.name} adicionado ao ticket aberto.`, 'success');
+    } catch (error) {
+      console.error(error);
+      showToast(`Nao foi possivel adicionar o servico: ${getErrorMessage(error)}`, 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
   const addServiceToCart = (service: ServiceOption) => {
+    if (selectedOpenTicket) {
+      void quickAddServiceToOpenTicket(selectedOpenTicket, service);
+      return;
+    }
+
     setServiceCart((prev) => [...prev, {
       uid: createLineItemId(),
       service_id: service.id,
@@ -404,7 +537,34 @@ export default function VendasPage() {
     ));
   };
 
+  const quickAddProductToOpenTicket = async (ticket: OpenTicket, product: Product) => {
+    setLoading(true);
+
+    try {
+      await persistItemsToOpenTicket(ticket, [], [{
+        id: createLineItemId(),
+        product_id: product.id,
+        name: product.name,
+        unit_price: product.sale_price,
+        unit_cost: product.cost_price,
+        quantity: 1,
+      }]);
+      await fetchInitialData();
+      showToast(`${product.name} adicionado ao ticket aberto.`, 'success');
+    } catch (error) {
+      console.error(error);
+      showToast(`Nao foi possivel adicionar o produto: ${getErrorMessage(error)}`, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addToCart = (product: Product) => {
+    if (selectedOpenTicket) {
+      void quickAddProductToOpenTicket(selectedOpenTicket, product);
+      return;
+    }
+
     setCart((prev) => {
       const existing = prev.find((item) => item.product_id === product.id);
       if (existing) {
@@ -477,90 +637,7 @@ export default function VendasPage() {
   };
 
   const persistPendingItemsToOpenTicket = async (ticket: OpenTicket) => {
-    if (!hasPendingItems) {
-      return {
-        totalServices: Number(ticket.total_services),
-        totalProducts: Number(ticket.total_products),
-        totalAmount: Number(ticket.total_amount),
-        totalProfit: Number(ticket.total_profit),
-      };
-    }
-
-    let addedServiceTotal = 0;
-    let addedProductsTotal = 0;
-    let addedProductsCost = 0;
-
-    for (const service of serviceCart) {
-      const subtotal = service.price * service.quantity;
-      addedServiceTotal += subtotal;
-
-      const { error } = await supabase.from('ticket_service_items').insert({
-        ticket_id: ticket.id,
-        service_id: service.service_id,
-        service_name_snapshot: service.name,
-        quantity: service.quantity,
-        unit_price: service.price,
-        subtotal,
-      });
-
-      if (error) throw error;
-    }
-
-    for (const item of cart) {
-      const subtotal = item.unit_price * item.quantity;
-      const unitProfit = item.unit_price - item.unit_cost;
-      addedProductsTotal += subtotal;
-      addedProductsCost += item.unit_cost * item.quantity;
-
-      const { error: productItemError } = await supabase.from('ticket_product_items').insert({
-        ticket_id: ticket.id,
-        product_id: item.product_id,
-        product_name_snapshot: item.name,
-        quantity: item.quantity,
-        unit_cost: item.unit_cost,
-        unit_price: item.unit_price,
-        unit_profit: unitProfit,
-        subtotal,
-      });
-
-      if (productItemError) throw productItemError;
-
-      const { error: stockError } = await supabase.from('stock_movements').insert({
-        product_id: item.product_id,
-        movement_type: 'out',
-        quantity: item.quantity,
-        unit_cost: item.unit_cost,
-        reason: 'Consumo em ticket aberto',
-        reference_type: 'open_ticket',
-        reference_id: ticket.id,
-      });
-
-      if (stockError) throw stockError;
-    }
-
-    const totalServices = Number(ticket.total_services) + addedServiceTotal;
-    const totalProducts = Number(ticket.total_products) + addedProductsTotal;
-    const totalAmount = Number(ticket.total_amount) + addedServiceTotal + addedProductsTotal;
-    const totalProfit = Number(ticket.total_profit) + addedServiceTotal + (addedProductsTotal - addedProductsCost);
-
-    const { error: updateError } = await supabase
-      .from('tickets')
-      .update({
-        total_services: totalServices,
-        total_products: totalProducts,
-        total_amount: totalAmount,
-        total_profit: totalProfit,
-      })
-      .eq('id', ticket.id);
-
-    if (updateError) throw updateError;
-
-    return {
-      totalServices,
-      totalProducts,
-      totalAmount,
-      totalProfit,
-    };
+    return persistItemsToOpenTicket(ticket, serviceCart, cart);
   };
 
   const handleSaveOpenTicketItems = async () => {
@@ -582,7 +659,7 @@ export default function VendasPage() {
       await fetchInitialData();
     } catch (error) {
       console.error(error);
-      showToast('Erro ao salvar itens no ticket aberto.', 'error');
+      showToast(`Erro ao salvar itens no ticket aberto: ${getErrorMessage(error)}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -633,7 +710,7 @@ export default function VendasPage() {
         }, 2500);
       } catch (error) {
         console.error(error);
-        showToast('Erro ao fechar ticket aberto.', 'error');
+        showToast(`Erro ao fechar ticket aberto: ${getErrorMessage(error)}`, 'error');
       } finally {
         setLoading(false);
       }
@@ -747,7 +824,7 @@ export default function VendasPage() {
       }, 2500);
     } catch (error) {
       console.error(error);
-      showToast('Erro ao processar fechamento.', 'error');
+      showToast(`Erro ao processar fechamento: ${getErrorMessage(error)}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -867,7 +944,6 @@ export default function VendasPage() {
   };
 
   const openTicketItemCount = savedServiceCount + savedProductCount;
-  const pendingItemCount = serviceCart.reduce((sum, item) => sum + item.quantity, 0) + cart.reduce((sum, item) => sum + item.quantity, 0);
 
   if (success) {
     return (
@@ -950,7 +1026,7 @@ export default function VendasPage() {
         )}
       </Card>
 
-      <div className={styles.posLayout}>
+      <div className={styles.posLayout} ref={editorSectionRef}>
         <div className={styles.mainPanel}>
           <Card className={styles.appointmentSection}>
             <h3>1. Escolha o Tipo de Atendimento</h3>
@@ -989,7 +1065,7 @@ export default function VendasPage() {
                 <div className={styles.row}><Receipt size={16} /> <strong>Ticket em aberto:</strong> {getOpenTicketLabel(selectedOpenTicket)}</div>
                 <div className={styles.row}><Clock3 size={16} /> <strong>Abertura:</strong> {new Date(selectedOpenTicket.created_at).toLocaleString('pt-BR')}</div>
                 <div className={styles.nextStepBox}>
-                  Este ticket ja tem {openTicketItemCount} itens salvos. Adicione novos itens abaixo e clique em <strong>Salvar no Ticket Aberto</strong> ou <strong>Receber e Fechar Ticket</strong>.
+                  Este ticket ja tem {openTicketItemCount} itens salvos. Agora basta clicar nos produtos ou servicos abaixo para lancar direto na conta. Quando o cliente pagar, clique em <strong>Receber e Fechar Ticket</strong>.
                 </div>
               </div>
             )}
@@ -1144,7 +1220,7 @@ export default function VendasPage() {
 
             {isOpenTicketMode && (
               <div className={styles.openTicketNote}>
-                <strong>Em aberto:</strong> {openTicketItemCount} itens ja salvos e {pendingItemCount} itens novos nesta tela.
+                <strong>Em aberto:</strong> {openTicketItemCount} itens ja salvos. Clique em um produto ou servico para lancar direto neste ticket.
               </div>
             )}
 
