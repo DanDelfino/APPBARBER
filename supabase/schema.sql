@@ -68,6 +68,7 @@ CREATE TABLE tickets (
   client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
   barber_id UUID REFERENCES barbers(id) ON DELETE SET NULL,
   appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
+  manual_client_name TEXT,
   total_services NUMERIC(10, 2) DEFAULT 0,
   total_products NUMERIC(10, 2) DEFAULT 0,
   total_amount NUMERIC(10, 2) DEFAULT 0,
@@ -76,7 +77,8 @@ CREATE TABLE tickets (
   amount_paid NUMERIC(10, 2) DEFAULT 0,
   change_amount NUMERIC(10, 2) DEFAULT 0,
   status ticket_status DEFAULT 'open',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  closed_at TIMESTAMP WITH TIME ZONE
 );
 
 -- Add foreign key from appointments to tickets now that tickets table exists

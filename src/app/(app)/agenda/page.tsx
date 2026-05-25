@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Calendar as CalendarIcon, Clock, User, Plus, Search, ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Plus, ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
 import { format, addDays, subDays, startOfDay, isEqual } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/components/ui/ToastProvider';
 import { CreateAppointmentModal } from './CreateAppointmentModal';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { normalizeName, normalizePhone } from '@/lib/utils';
 import styles from './Agenda.module.css';
 
 interface AppointmentView {
@@ -42,6 +43,9 @@ export default function AgendaPage() {
   const [now, setNow] = useState(Date.now());
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
+  const [clientSaving, setClientSaving] = useState(false);
+  const [clientForm, setClientForm] = useState({ name: '', phone: '', notes: '' });
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [cancellingAptId, setCancellingAptId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
@@ -69,6 +73,32 @@ export default function AgendaPage() {
     if (data) setBarbers(data);
   };
 
+  const handleCreateClient = async () => {
+    if (!clientForm.name.trim()) {
+      showToast('Informe o nome do cliente.', 'error');
+      return;
+    }
+
+    setClientSaving(true);
+    const { error } = await supabase
+      .from('clients')
+      .insert({
+        name: normalizeName(clientForm.name),
+        phone: normalizePhone(clientForm.phone) || null,
+        notes: clientForm.notes.trim() || null,
+      });
+
+    if (error) {
+      showToast('Erro ao cadastrar cliente.', 'error');
+    } else {
+      showToast('Cliente cadastrado com sucesso.', 'success');
+      setClientForm({ name: '', phone: '', notes: '' });
+      setClientModalOpen(false);
+    }
+
+    setClientSaving(false);
+  };
+
   const fetchAppointments = async () => {
     setLoading(true);
     const formattedDate = format(currentDate, 'yyyy-MM-dd');
@@ -88,9 +118,9 @@ export default function AgendaPage() {
       query = query.eq('barber_id', selectedBarberId);
     }
 
-    const { data, error } = await query;
+    const { data } = await query;
     if (data) {
-      setAppointments(data as any[]);
+      setAppointments(data as unknown as AppointmentView[]);
     }
     setLoading(false);
   };
@@ -251,6 +281,10 @@ export default function AgendaPage() {
             ))}
           </select>
 
+          <Button variant="secondary" onClick={() => setClientModalOpen(true)}>
+            <Plus size={18} /> Novo Cliente
+          </Button>
+
           <Button onClick={() => setIsModalOpen(true)}>
             <Plus size={18} /> Novo Agendamento
           </Button>
@@ -393,6 +427,47 @@ export default function AgendaPage() {
         onSuccess={fetchAppointments}
         selectedDate={currentDate}
       />
+
+      <Modal
+        isOpen={clientModalOpen}
+        onClose={() => setClientModalOpen(false)}
+        title="Novo Cliente"
+        footer={(
+          <>
+            <Button variant="secondary" onClick={() => setClientModalOpen(false)}>Cancelar</Button>
+            <Button onClick={handleCreateClient} isLoading={clientSaving}>Salvar Cliente</Button>
+          </>
+        )}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+            Cadastre o cliente aqui e siga no atendimento sem sair da agenda.
+          </p>
+          <Input
+            label="Nome do cliente"
+            placeholder="Ex: Joao Silva"
+            value={clientForm.name}
+            onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
+            autoFocus
+          />
+          <Input
+            label="Telefone (opcional)"
+            placeholder="(11) 99999-0000"
+            value={clientForm.phone}
+            onChange={(e) => setClientForm({ ...clientForm, phone: normalizePhone(e.target.value) })}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--foreground)' }}>Observacao (opcional)</label>
+            <textarea
+              className={styles.notesTextarea}
+              rows={3}
+              placeholder="Ex: prefere horario no fim da tarde"
+              value={clientForm.notes}
+              onChange={(e) => setClientForm({ ...clientForm, notes: e.target.value })}
+            />
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={cancelModalOpen}

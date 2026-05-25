@@ -260,3 +260,20 @@
 .emptyIcon {
   color: var(--border);
 }
+
+.notesTextarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--foreground);
+  padding: 0.8rem 0.9rem;
+  font: inherit;
+  resize: vertical;
+  min-height: 88px;
+  outline: none;
+}
+
+.notesTextarea:focus {
+  border-color: var(--primary);
+}

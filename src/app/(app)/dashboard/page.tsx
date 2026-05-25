@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/Card';
-import { CalendarDays, DollarSign, Users, Package, AlertTriangle } from 'lucide-react';
-import { format, startOfDay } from 'date-fns';
+import { CalendarDays, DollarSign, Users, Package, AlertTriangle, Clock3, Scissors, User } from 'lucide-react';
+import { endOfDay, format, startOfDay } from 'date-fns';
 import styles from './Dashboard.module.css';
 
 interface DashboardMetrics {
@@ -14,76 +14,153 @@ interface DashboardMetrics {
   lowStockItems: number;
 }
 
+interface AppointmentToday {
+  id: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  clients: { name: string } | null;
+  barbers: { name: string } | null;
+  services: { name: string } | null;
+}
+
+interface AppointmentTodayRow {
+  id: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  clients: { name: string }[] | { name: string } | null;
+  barbers: { name: string }[] | { name: string } | null;
+  services: { name: string }[] | { name: string } | null;
+}
+
+interface AppointmentStatusBreakdown {
+  scheduled: number;
+  confirmed: number;
+  in_progress: number;
+  completed: number;
+  cancelled: number;
+  no_show: number;
+}
+
+const emptyBreakdown: AppointmentStatusBreakdown = {
+  scheduled: 0,
+  confirmed: 0,
+  in_progress: 0,
+  completed: 0,
+  cancelled: 0,
+  no_show: 0,
+};
+
+const statusMeta: Record<string, { label: string; tone: 'blue' | 'green' | 'orange' | 'purple' | 'red' | 'gray' }> = {
+  scheduled: { label: 'Agendado', tone: 'blue' },
+  confirmed: { label: 'Confirmado', tone: 'green' },
+  in_progress: { label: 'Em Atendimento', tone: 'orange' },
+  completed: { label: 'Concluido', tone: 'purple' },
+  cancelled: { label: 'Cancelado', tone: 'red' },
+  no_show: { label: 'Nao Compareceu', tone: 'gray' },
+};
+
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     appointmentsToday: 0,
     revenueToday: 0,
     newClients: 0,
-    lowStockItems: 0
+    lowStockItems: 0,
   });
+  const [appointmentsToday, setAppointmentsToday] = useState<AppointmentToday[]>([]);
+  const [statusBreakdown, setStatusBreakdown] = useState<AppointmentStatusBreakdown>(emptyBreakdown);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+
+  const pickRelation = (value: { name: string }[] | { name: string } | null) => {
+    if (!value) return null;
+    return Array.isArray(value) ? value[0] || null : value;
+  };
+
+  async function fetchMetrics() {
+    setLoading(true);
+
+    const dayStart = startOfDay(new Date());
+    const dayEnd = endOfDay(new Date());
+    const todayStr = format(dayStart, 'yyyy-MM-dd');
+    const sevenDaysAgo = format(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
+
+    const [appointmentsRes, ticketsRes, clientsRes, productsRes] = await Promise.all([
+      supabase
+        .from('appointments')
+        .select(`
+          id,
+          appointment_date,
+          start_time,
+          end_time,
+          status,
+          clients (name),
+          barbers (name),
+          services (name)
+        `)
+        .eq('appointment_date', todayStr)
+        .order('start_time'),
+      supabase
+        .from('tickets')
+        .select('total_amount')
+        .eq('status', 'paid')
+        .gte('created_at', dayStart.toISOString())
+        .lte('created_at', dayEnd.toISOString()),
+      supabase
+        .from('clients')
+        .select('id', { count: 'exact' })
+        .gte('created_at', `${sevenDaysAgo}T00:00:00Z`),
+      supabase
+        .from('products')
+        .select('current_stock, min_stock')
+        .eq('active', true),
+    ]);
+
+    const appointmentsData = ((appointmentsRes.data || []) as AppointmentTodayRow[]).map((appointment) => ({
+      ...appointment,
+      clients: pickRelation(appointment.clients),
+      barbers: pickRelation(appointment.barbers),
+      services: pickRelation(appointment.services),
+    }));
+    const breakdown = appointmentsData.reduce((acc, appointment) => {
+      if (appointment.status in acc) {
+        acc[appointment.status as keyof AppointmentStatusBreakdown] += 1;
+      }
+      return acc;
+    }, { ...emptyBreakdown });
+
+    const revenue = (ticketsRes.data || []).reduce((sum, ticket) => sum + Number(ticket.total_amount), 0);
+    const lowStockCount = (productsRes.data || []).filter((product) => product.current_stock <= product.min_stock).length;
+
+    setAppointmentsToday(appointmentsData);
+    setStatusBreakdown(breakdown);
+    setMetrics({
+      appointmentsToday: appointmentsData.length,
+      revenueToday: revenue,
+      newClients: clientsRes.count || 0,
+      lowStockItems: lowStockCount,
+    });
+    setLoading(false);
+  }
 
   useEffect(() => {
     fetchMetrics();
   }, []);
 
-  const fetchMetrics = async () => {
-    setLoading(true);
-    const todayStr = format(startOfDay(new Date()), 'yyyy-MM-dd');
-    
-    // 1. Appointments Today
-    const { count: aptCount } = await supabase
-      .from('appointments')
-      .select('id', { count: 'exact' })
-      .eq('appointment_date', todayStr)
-      .neq('status', 'cancelled');
-
-    // 2. Revenue Today (from Tickets)
-    const { data: tickets } = await supabase
-      .from('tickets')
-      .select('total_amount')
-      .gte('created_at', `${todayStr}T00:00:00Z`)
-      .eq('status', 'paid');
-      
-    const revenue = tickets?.reduce((sum, t) => sum + Number(t.total_amount), 0) || 0;
-
-    // 3. New Clients (last 7 days - simple proxy for "new")
-    const sevenDaysAgo = format(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
-    const { count: clientCount } = await supabase
-      .from('clients')
-      .select('id', { count: 'exact' })
-      .gte('created_at', `${sevenDaysAgo}T00:00:00Z`);
-
-    // 4. Low Stock
-    // Using simple approach: query all active products and filter in memory, or use a complex query
-    // Supabase JS doesn't have a simple columnA <= columnB operator natively in `.select()`, 
-    // so we fetch and filter (safe for small catalogs)
-    const { data: products } = await supabase
-      .from('products')
-      .select('current_stock, min_stock')
-      .eq('active', true);
-      
-    const lowStockCount = products?.filter(p => p.current_stock <= p.min_stock).length || 0;
-
-    setMetrics({
-      appointmentsToday: aptCount || 0,
-      revenueToday: revenue,
-      newClients: clientCount || 0,
-      lowStockItems: lowStockCount
-    });
-    setLoading(false);
-  };
+  const todayLabel = format(new Date(), "dd/MM/yyyy");
 
   if (loading) {
-    return <div className={styles.container}>Carregando métricas...</div>;
+    return <div className={styles.container}>Carregando metricas...</div>;
   }
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Dashboard</h1>
-        <p className={styles.subtitle}>Visão geral do sistema</p>
+        <p className={styles.subtitle}>Visao geral do sistema</p>
       </div>
 
       <div className={styles.statsGrid}>
@@ -92,8 +169,9 @@ export default function DashboardPage() {
             <CalendarDays size={24} />
           </div>
           <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Agendamentos Hoje</p>
+            <p className={styles.statLabel}>Atendimentos de Hoje</p>
             <p className={styles.statValue}>{metrics.appointmentsToday}</p>
+            <p className={styles.statHint}>Inclui todos os status do dia</p>
           </div>
         </Card>
 
@@ -118,10 +196,13 @@ export default function DashboardPage() {
         </Card>
 
         <Card className={styles.statCard}>
-          <div className={styles.statIconWrapper} style={{ 
-            backgroundColor: metrics.lowStockItems > 0 ? '#fef2f2' : '#fffbeb', 
-            color: metrics.lowStockItems > 0 ? '#ef4444' : '#f59e0b' 
-          }}>
+          <div
+            className={styles.statIconWrapper}
+            style={{
+              backgroundColor: metrics.lowStockItems > 0 ? '#fef2f2' : '#fffbeb',
+              color: metrics.lowStockItems > 0 ? '#ef4444' : '#f59e0b',
+            }}
+          >
             {metrics.lowStockItems > 0 ? <AlertTriangle size={24} /> : <Package size={24} />}
           </div>
           <div className={styles.statInfo}>
@@ -130,6 +211,52 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      <Card title={`Hoje (${todayLabel})`}>
+        <div className={styles.statusSummary}>
+          {Object.entries(statusBreakdown).map(([status, count]) => {
+            const meta = statusMeta[status] || { label: status, tone: 'gray' as const };
+            return (
+              <div key={status} className={`${styles.statusPill} ${styles[`tone-${meta.tone}`]}`}>
+                <span>{meta.label}</span>
+                <strong>{count}</strong>
+              </div>
+            );
+          })}
+        </div>
+
+        {appointmentsToday.length === 0 ? (
+          <div className={styles.emptyState}>Nenhum atendimento registrado para hoje.</div>
+        ) : (
+          <div className={styles.todayList}>
+            {appointmentsToday.map((appointment) => {
+              const meta = statusMeta[appointment.status] || { label: appointment.status, tone: 'gray' as const };
+              return (
+                <div key={appointment.id} className={styles.todayRow}>
+                  <div className={styles.todayMain}>
+                    <div className={styles.todayTime}>
+                      <Clock3 size={15} />
+                      <span>{appointment.start_time.slice(0, 5)} - {appointment.end_time.slice(0, 5)}</span>
+                    </div>
+                    <div className={styles.todayClient}>
+                      <User size={15} />
+                      <span>{appointment.clients?.name || 'Cliente nao identificado'}</span>
+                    </div>
+                    <div className={styles.todayService}>
+                      <Scissors size={15} />
+                      <span>{appointment.services?.name || 'Servico nao informado'}</span>
+                    </div>
+                  </div>
+                  <div className={styles.todayMeta}>
+                    <span className={styles.todayBarber}>{appointment.barbers?.name || 'Sem profissional'}</span>
+                    <span className={`${styles.statusBadge} ${styles[`tone-${meta.tone}`]}`}>{meta.label}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
