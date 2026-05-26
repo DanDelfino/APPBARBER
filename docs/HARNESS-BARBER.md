@@ -32,3 +32,12 @@ Validar os fluxos essenciais do barber-app com cenarios operacionais reais, foca
 
 - `H025 - ticket fechado entra no faturamento`
   Depois do fechamento, o ticket passa a compor o faturamento e o historico de vendas recentes.
+
+- `H026 - remover item de ticket aberto`
+  O operador consegue remover um item salvo de um ticket com status `open`, e o total parcial e a quantidade do ticket sao recalculados na hora.
+
+- `H027 - estoque volta ao remover produto de ticket aberto`
+  Quando um produto e removido de um ticket `open`, o sistema registra estorno no estoque e o `current_stock` volta corretamente.
+
+- `H028 - valor em aberto nao entra como faturamento pago`
+  O dashboard separa claramente `Faturamento Pago Hoje`, `Valor em Aberto` e `Tickets Abertos`, sem somar tickets `open` no caixa pago.

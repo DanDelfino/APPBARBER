@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 import { Card } from '@/components/ui/Card';
-import { CalendarDays, DollarSign, Users, Package, AlertTriangle, Clock3, Scissors, User } from 'lucide-react';
+import { CalendarDays, DollarSign, Users, Package, AlertTriangle, Clock3, Scissors, User, Receipt } from 'lucide-react';
 import { endOfDay, format, startOfDay } from 'date-fns';
 import styles from './Dashboard.module.css';
 
 interface DashboardMetrics {
   appointmentsToday: number;
-  revenueToday: number;
+  paidRevenueToday: number;
+  openTicketAmount: number;
+  openTicketsCount: number;
   newClients: number;
   lowStockItems: number;
 }
@@ -66,7 +68,9 @@ const statusMeta: Record<string, { label: string; tone: 'blue' | 'green' | 'oran
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     appointmentsToday: 0,
-    revenueToday: 0,
+    paidRevenueToday: 0,
+    openTicketAmount: 0,
+    openTicketsCount: 0,
     newClients: 0,
     lowStockItems: 0,
   });
@@ -88,7 +92,7 @@ export default function DashboardPage() {
     const todayStr = format(dayStart, 'yyyy-MM-dd');
     const sevenDaysAgo = format(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
 
-    const [appointmentsRes, ticketsRes, clientsRes, productsRes] = await Promise.all([
+    const [appointmentsRes, paidTicketsRes, openTicketsRes, clientsRes, productsRes] = await Promise.all([
       supabase
         .from('appointments')
         .select(`
@@ -105,10 +109,12 @@ export default function DashboardPage() {
         .order('start_time'),
       supabase
         .from('tickets')
-        .select('total_amount')
-        .eq('status', 'paid')
-        .gte('created_at', dayStart.toISOString())
-        .lte('created_at', dayEnd.toISOString()),
+        .select('total_amount, created_at, closed_at')
+        .eq('status', 'paid'),
+      supabase
+        .from('tickets')
+        .select('id, total_amount')
+        .eq('status', 'open'),
       supabase
         .from('clients')
         .select('id', { count: 'exact' })
@@ -132,14 +138,25 @@ export default function DashboardPage() {
       return acc;
     }, { ...emptyBreakdown });
 
-    const revenue = (ticketsRes.data || []).reduce((sum, ticket) => sum + Number(ticket.total_amount), 0);
+    const revenue = (paidTicketsRes.data || []).reduce((sum, ticket) => {
+      const effectiveDate = ticket.closed_at || ticket.created_at;
+      const effectiveTime = new Date(effectiveDate).getTime();
+      if (effectiveTime < dayStart.getTime() || effectiveTime > dayEnd.getTime()) {
+        return sum;
+      }
+      return sum + Number(ticket.total_amount);
+    }, 0);
+    const openAmount = (openTicketsRes.data || []).reduce((sum, ticket) => sum + Number(ticket.total_amount), 0);
+    const openTicketsCount = (openTicketsRes.data || []).length;
     const lowStockCount = (productsRes.data || []).filter((product) => product.current_stock <= product.min_stock).length;
 
     setAppointmentsToday(appointmentsData);
     setStatusBreakdown(breakdown);
     setMetrics({
       appointmentsToday: appointmentsData.length,
-      revenueToday: revenue,
+      paidRevenueToday: revenue,
+      openTicketAmount: openAmount,
+      openTicketsCount,
       newClients: clientsRes.count || 0,
       lowStockItems: lowStockCount,
     });
@@ -180,8 +197,31 @@ export default function DashboardPage() {
             <DollarSign size={24} />
           </div>
           <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Faturamento Hoje</p>
-            <p className={styles.statValue}>R$ {metrics.revenueToday.toFixed(2)}</p>
+            <p className={styles.statLabel}>Faturamento Pago Hoje</p>
+            <p className={styles.statValue}>R$ {metrics.paidRevenueToday.toFixed(2)}</p>
+            <p className={styles.statHint}>Somente tickets pagos no dia</p>
+          </div>
+        </Card>
+
+        <Card className={styles.statCard}>
+          <div className={styles.statIconWrapper} style={{ backgroundColor: '#fff7ed', color: '#ea580c' }}>
+            <Receipt size={24} />
+          </div>
+          <div className={styles.statInfo}>
+            <p className={styles.statLabel}>Valor em Aberto</p>
+            <p className={styles.statValue}>R$ {metrics.openTicketAmount.toFixed(2)}</p>
+            <p className={styles.statHint}>{metrics.openTicketsCount} tickets aguardando fechamento</p>
+          </div>
+        </Card>
+
+        <Card className={styles.statCard}>
+          <div className={styles.statIconWrapper} style={{ backgroundColor: '#eef2ff', color: '#4f46e5' }}>
+            <Clock3 size={24} />
+          </div>
+          <div className={styles.statInfo}>
+            <p className={styles.statLabel}>Tickets Abertos</p>
+            <p className={styles.statValue}>{metrics.openTicketsCount}</p>
+            <p className={styles.statHint}>Nao entra no faturamento pago</p>
           </div>
         </Card>
 

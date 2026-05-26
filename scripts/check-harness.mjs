@@ -14,6 +14,9 @@ const requiredHarnesses = [
   'H023',
   'H024',
   'H025',
+  'H026',
+  'H027',
+  'H028',
 ];
 
 const missing = requiredHarnesses.filter((item) => !content.includes(item));

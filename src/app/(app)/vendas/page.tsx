@@ -82,15 +82,21 @@ interface ClientOption {
 
 interface OpenTicketProductItem {
   id: string;
+  product_id: string | null;
   product_name_snapshot: string;
   quantity: number;
+  unit_cost: number;
+  unit_price: number;
+  unit_profit: number;
   subtotal: number;
 }
 
 interface OpenTicketServiceItem {
   id: string;
+  service_id: string | null;
   service_name_snapshot: string;
   quantity: number;
+  unit_price: number;
   subtotal: number;
 }
 
@@ -142,6 +148,13 @@ interface OpenTicketRow {
   ticket_service_items: OpenTicketServiceItem[] | null;
 }
 
+interface TicketTotals {
+  totalServices: number;
+  totalProducts: number;
+  totalAmount: number;
+  totalProfit: number;
+}
+
 const createLineItemId = () => {
   if (typeof globalThis !== 'undefined' && globalThis.crypto?.randomUUID) {
     return globalThis.crypto.randomUUID();
@@ -180,6 +193,7 @@ export default function VendasPage() {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [amountPaid, setAmountPaid] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeTicketActionId, setActiveTicketActionId] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showServiceSelector, setShowServiceSelector] = useState(false);
   const [clientModalOpen, setClientModalOpen] = useState(false);
@@ -279,14 +293,20 @@ export default function VendasPage() {
           clients (name),
           ticket_product_items (
             id,
+            product_id,
             product_name_snapshot,
             quantity,
+            unit_cost,
+            unit_price,
+            unit_profit,
             subtotal
           ),
           ticket_service_items (
             id,
+            service_id,
             service_name_snapshot,
             quantity,
+            unit_price,
             subtotal
           )
         `)
@@ -391,11 +411,54 @@ export default function VendasPage() {
     }
   };
 
+  const recalculateOpenTicketTotals = async (ticketId: string): Promise<TicketTotals> => {
+    const [serviceItemsRes, productItemsRes] = await Promise.all([
+      supabase
+        .from('ticket_service_items')
+        .select('quantity, unit_price, subtotal')
+        .eq('ticket_id', ticketId),
+      supabase
+        .from('ticket_product_items')
+        .select('quantity, unit_cost, unit_price, unit_profit, subtotal')
+        .eq('ticket_id', ticketId),
+    ]);
+
+    if (serviceItemsRes.error) throw serviceItemsRes.error;
+    if (productItemsRes.error) throw productItemsRes.error;
+
+    const totalServices = (serviceItemsRes.data || []).reduce((sum, item) => sum + Number(item.subtotal), 0);
+    const totalProducts = (productItemsRes.data || []).reduce((sum, item) => sum + Number(item.subtotal), 0);
+    const productProfit = (productItemsRes.data || []).reduce(
+      (sum, item) => sum + (Number(item.unit_profit) * Number(item.quantity)),
+      0
+    );
+    const totals = {
+      totalServices,
+      totalProducts,
+      totalAmount: totalServices + totalProducts,
+      totalProfit: totalServices + productProfit,
+    };
+
+    const { error: updateError } = await supabase
+      .from('tickets')
+      .update({
+        total_services: totals.totalServices,
+        total_products: totals.totalProducts,
+        total_amount: totals.totalAmount,
+        total_profit: totals.totalProfit,
+      })
+      .eq('id', ticketId);
+
+    if (updateError) throw updateError;
+
+    return totals;
+  };
+
   const persistItemsToOpenTicket = async (
     ticket: OpenTicket,
     nextServices: ServiceCartItem[],
     nextProducts: CartItem[]
-  ) => {
+  ): Promise<TicketTotals> => {
     if (nextServices.length === 0 && nextProducts.length === 0) {
       return {
         totalServices: Number(ticket.total_services),
@@ -405,13 +468,8 @@ export default function VendasPage() {
       };
     }
 
-    let addedServiceTotal = 0;
-    let addedProductsTotal = 0;
-    let addedProductsCost = 0;
-
     for (const service of nextServices) {
       const subtotal = service.price * service.quantity;
-      addedServiceTotal += subtotal;
 
       const { error } = await supabase.from('ticket_service_items').insert({
         ticket_id: ticket.id,
@@ -428,8 +486,6 @@ export default function VendasPage() {
     for (const item of nextProducts) {
       const subtotal = item.unit_price * item.quantity;
       const unitProfit = item.unit_price - item.unit_cost;
-      addedProductsTotal += subtotal;
-      addedProductsCost += item.unit_cost * item.quantity;
 
       const { error: productItemError } = await supabase.from('ticket_product_items').insert({
         ticket_id: ticket.id,
@@ -457,33 +513,12 @@ export default function VendasPage() {
       if (stockError) throw stockError;
     }
 
-    const totalServices = Number(ticket.total_services) + addedServiceTotal;
-    const totalProducts = Number(ticket.total_products) + addedProductsTotal;
-    const totalAmount = Number(ticket.total_amount) + addedServiceTotal + addedProductsTotal;
-    const totalProfit = Number(ticket.total_profit) + addedServiceTotal + (addedProductsTotal - addedProductsCost);
-
-    const { error: updateError } = await supabase
-      .from('tickets')
-      .update({
-        total_services: totalServices,
-        total_products: totalProducts,
-        total_amount: totalAmount,
-        total_profit: totalProfit,
-      })
-      .eq('id', ticket.id);
-
-    if (updateError) throw updateError;
-
-    return {
-      totalServices,
-      totalProducts,
-      totalAmount,
-      totalProfit,
-    };
+    return recalculateOpenTicketTotals(ticket.id);
   };
 
   const quickAddServiceToOpenTicket = async (ticket: OpenTicket, service: ServiceOption) => {
     setLoading(true);
+    setActiveTicketActionId(ticket.id);
     setShowServiceSelector(false);
 
     try {
@@ -500,6 +535,7 @@ export default function VendasPage() {
       console.error(error);
       showToast(`Nao foi possivel adicionar o servico: ${getErrorMessage(error)}`, 'error');
     } finally {
+      setActiveTicketActionId(null);
       setLoading(false);
     }
   };
@@ -539,6 +575,7 @@ export default function VendasPage() {
 
   const quickAddProductToOpenTicket = async (ticket: OpenTicket, product: Product) => {
     setLoading(true);
+    setActiveTicketActionId(ticket.id);
 
     try {
       await persistItemsToOpenTicket(ticket, [], [{
@@ -555,6 +592,7 @@ export default function VendasPage() {
       console.error(error);
       showToast(`Nao foi possivel adicionar o produto: ${getErrorMessage(error)}`, 'error');
     } finally {
+      setActiveTicketActionId(null);
       setLoading(false);
     }
   };
@@ -605,6 +643,79 @@ export default function VendasPage() {
     const productItems = ticket.ticket_product_items.map((item) => `${item.quantity}x ${item.product_name_snapshot}`);
     const serviceItems = ticket.ticket_service_items.map((item) => `${item.quantity}x ${item.service_name_snapshot}`);
     return [...serviceItems, ...productItems].slice(0, 3);
+  };
+
+  const handleRemoveOpenTicketServiceItem = async (ticket: OpenTicket, item: OpenTicketServiceItem) => {
+    if (!confirm(`Remover ${item.quantity}x ${item.service_name_snapshot} deste ticket?`)) return;
+
+    setLoading(true);
+    setActiveTicketActionId(ticket.id);
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('ticket_service_items')
+        .delete()
+        .eq('id', item.id)
+        .eq('ticket_id', ticket.id);
+
+      if (deleteError) throw deleteError;
+
+      await recalculateOpenTicketTotals(ticket.id);
+      await fetchInitialData();
+      showToast('Servico removido do ticket aberto.', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast(`Nao foi possivel remover o servico: ${getErrorMessage(error)}`, 'error');
+    } finally {
+      setActiveTicketActionId(null);
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveOpenTicketProductItem = async (ticket: OpenTicket, item: OpenTicketProductItem) => {
+    if (!confirm(`Remover ${item.quantity}x ${item.product_name_snapshot} deste ticket?`)) return;
+
+    setLoading(true);
+    setActiveTicketActionId(ticket.id);
+
+    try {
+      const { data: deletedItem, error: deleteError } = await supabase
+        .from('ticket_product_items')
+        .delete()
+        .eq('id', item.id)
+        .eq('ticket_id', ticket.id)
+        .select('id, ticket_id, product_id, product_name_snapshot, quantity, unit_cost, unit_price, unit_profit, subtotal')
+        .single();
+
+      if (deleteError || !deletedItem) throw deleteError || new Error('Item nao encontrado para remocao.');
+
+      if (deletedItem.product_id) {
+        const { error: stockError } = await supabase.from('stock_movements').insert({
+          product_id: deletedItem.product_id,
+          movement_type: 'in',
+          quantity: deletedItem.quantity,
+          unit_cost: deletedItem.unit_cost,
+          reason: 'Remocao de item de ticket aberto',
+          reference_type: 'open_ticket_item_removal',
+          reference_id: ticket.id,
+        });
+
+        if (stockError) {
+          await supabase.from('ticket_product_items').insert(deletedItem);
+          throw stockError;
+        }
+      }
+
+      await recalculateOpenTicketTotals(ticket.id);
+      await fetchInitialData();
+      showToast('Produto removido do ticket e estoque devolvido.', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast(`Nao foi possivel remover o produto: ${getErrorMessage(error)}`, 'error');
+    } finally {
+      setActiveTicketActionId(null);
+      setLoading(false);
+    }
   };
 
   const selectedOpenTicket = openTickets.find((ticket) => ticket.id === selectedOpenTicketId) || null;
@@ -1012,6 +1123,43 @@ export default function VendasPage() {
                     ))
                   )}
                 </div>
+
+                {(ticket.ticket_service_items.length > 0 || ticket.ticket_product_items.length > 0) && (
+                  <div className={styles.openTicketDetails}>
+                    {ticket.ticket_service_items.map((item) => (
+                      <div key={item.id} className={styles.openTicketItemRow}>
+                        <div className={styles.openTicketItemInfo}>
+                          <span className={styles.openTicketItemName}>{item.service_name_snapshot}</span>
+                          <span className={styles.openTicketItemMeta}>{item.quantity}x • {formatMoney(Number(item.subtotal))}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.openTicketRemoveBtn}
+                          onClick={() => void handleRemoveOpenTicketServiceItem(ticket, item)}
+                          disabled={loading && activeTicketActionId === ticket.id}
+                        >
+                          Remover item
+                        </button>
+                      </div>
+                    ))}
+                    {ticket.ticket_product_items.map((item) => (
+                      <div key={item.id} className={styles.openTicketItemRow}>
+                        <div className={styles.openTicketItemInfo}>
+                          <span className={styles.openTicketItemName}>{item.product_name_snapshot}</span>
+                          <span className={styles.openTicketItemMeta}>{item.quantity}x • {formatMoney(Number(item.subtotal))}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className={styles.openTicketRemoveBtn}
+                          onClick={() => void handleRemoveOpenTicketProductItem(ticket, item)}
+                          disabled={loading && activeTicketActionId === ticket.id}
+                        >
+                          Remover item
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className={styles.openTicketFooter}>
                   <span>{ticket.ticket_product_items.reduce((sum, item) => sum + item.quantity, 0)} produtos • {ticket.ticket_service_items.reduce((sum, item) => sum + item.quantity, 0)} servicos</span>

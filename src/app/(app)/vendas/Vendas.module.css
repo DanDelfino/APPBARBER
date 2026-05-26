@@ -638,7 +638,62 @@
   gap: 0.25rem;
   color: var(--text-muted);
   font-size: 0.8125rem;
-  min-height: 54px;
+  min-height: 36px;
+}
+
+.openTicketDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid var(--border);
+}
+
+.openTicketItemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.openTicketItemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.openTicketItemName {
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.openTicketItemMeta {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.openTicketRemoveBtn {
+  border: 1px solid rgba(239, 68, 68, 0.24);
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.openTicketRemoveBtn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.openTicketRemoveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .openTicketFooter {
@@ -721,6 +776,11 @@
 
   .openTicketTop {
     flex-direction: column;
+  }
+
+  .openTicketItemRow {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .openTicketActions {
