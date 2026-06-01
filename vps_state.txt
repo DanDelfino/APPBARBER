@@ -1,7 +1,0 @@
-
---- cd /root/barber-app && docker-compose -f docker-compose.prod.yml ps -a ---
-Name   Command   State   Ports
-------------------------------
-
---- cd /root/barber-app && docker-compose -f docker-compose.prod.yml logs --tail 20 ---
-Attaching to 

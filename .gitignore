@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -23,15 +21,34 @@
 # misc
 .DS_Store
 *.pem
+*.key
+*.crt
+*.p12
+*.pfx
 
-# debug
+# debug/logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*logs*.txt
+*log*.txt
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files
+.env
+.env.*
+!.env.example
+
+# operational dumps and credentials
+scripts/
+vps_*.txt
+*.kubeconfig
+google-credentials.json
+service-account*.json
+deploy*.zip
+*.db
+*.sqlite
+*.sqlite3
 
 # vercel
 .vercel
